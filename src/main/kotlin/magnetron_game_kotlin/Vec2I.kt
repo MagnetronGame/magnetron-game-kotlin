@@ -1,4 +1,4 @@
-package magnetron_kotlin
+package `magnetron-game-kotlin`
 
 data class Vec2I(
         val x: Int = 0,

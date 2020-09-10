@@ -1,4 +1,4 @@
-package magnetron_kotlin
+package `magnetron-game-kotlin`
 
 fun loadBoardStringToState(boardString: String): MagState {
     val boardSymbols = boardString.split("\n")

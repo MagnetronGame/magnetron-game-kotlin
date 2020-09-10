@@ -1,12 +1,10 @@
-package magnetron_kotlin
-
-import kotlin.math.*
-import kotlin.reflect.KClass
+package `magnetron-game-kotlin`
 
 enum class MagnetType {
     POSITIVE,
     NEGATIVE,
-    FAKE
+    FAKE,
+    UNKNOWN
 }
 
 interface Piece {

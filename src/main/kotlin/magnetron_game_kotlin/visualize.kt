@@ -1,4 +1,4 @@
-package magnetron_kotlin
+package `magnetron-game-kotlin`
 
 fun pieceToSymb(piece: Piece): String {
     val symb = when (piece) {
