@@ -1,25 +1,39 @@
-package `magnetron-game-kotlin`
+package magnetron_game_kotlin
 
 object MagnetronFuncs {
-    val initialBoard = """
+
+    val initialBoardString = """
     A0+ .   C   . A1-
     .   .   .   .   .
     C   .   C   .   C
     .   .   .   .   .
     A3- .   C   . A2+
-""".trimIndent()
+    """.trimIndent()
 
     val startHand = listOf(MagnetType.POSITIVE, MagnetType.NEGATIVE, MagnetType.FAKE)
 
     fun createInitialState(): MagState {
-        val initialState = loadBoardStringToState(initialBoard)
+        val initialState = loadBoardStringToState(initialBoardString)
+                .isTerminal(false)
+                .avatarIndicesWon(listOf())
+
+                .roundCount(0)
+                .roundStartIndex(0)
+                .simulationsCount(0)
+
+                .avatarTurnIndex(0)
+
+                .didSimulate(false)
+                .simulationStates(listOf())
+
+                .build()
         return initialState
     }
 
-    fun isFinished(state: MagState): Boolean =
+    private fun isFinished(state: MagState): Boolean =
         state.board.flatten().none { piece -> piece is CoinPiece }
 
-    fun winnerAvatarIndices(state: MagState): List<Int> =
+    private fun winnerAvatarIndices(state: MagState): List<Int> =
             state.avatars.indices
                     .groupBy { index -> state.avatars[index].coins }
                     .toList()
@@ -66,7 +80,7 @@ object MagnetronFuncs {
                 simulationStates = listOf()
         )
 
-        if (newState.roundCount == newState.staticState.roundCountBeforeSimulation) {
+        val nextState: MagState = if (newState.roundCount == newState.staticState.roundCountBeforeSimulation) {
             // simulate
             val simulationStates = Simulation.simulate(newState)
             val lastSimState = simulationStates.last()
@@ -85,12 +99,33 @@ object MagnetronFuncs {
                     didSimulate = true,
                     simulationStates = simulationStates
             )
-            return firstRoundState
+            firstRoundState
         }
         else {
-            return newState
+            newState
         }
+
+        val isTerminal = isFinished(nextState)
+        return if (isTerminal) nextState.copy(isTerminal = true, avatarIndicesWon = winnerAvatarIndices(nextState))
+            else nextState
     }
+
+    fun stateViewForPlayer(state: MagState, playerIndex: Int): MagStatePlayerView {
+        val stateForPlayer = state.copy(
+            avatars = state.avatars.mapIndexed { index, avatar->
+                if (index == playerIndex) avatar
+                else avatar.copy(hand = avatar.hand.map { MagnetType.UNKNOWN })
+            },
+            board = state.board.map { boardRow -> boardRow.map { piece ->
+                if (piece is MagnetPiece) StaticPieces.MAGNET_UNKNOWN else piece
+            } }
+        )
+        return MagStatePlayerView(
+                playerIndex,
+                stateForPlayer
+        )
+    }
+
 
     @Throws(IllegalMagActionException::class)
     fun validateAction(state: MagState, action: MagAction) {

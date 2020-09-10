@@ -1,6 +1,6 @@
-package `magnetron-game-kotlin`
+package magnetron_game_kotlin
 
-fun loadBoardStringToState(boardString: String): MagState {
+fun loadBoardStringToState(boardString: String, stateBuilder: MagState.Builder? = null): MagState.Builder {
     val boardSymbols = boardString.split("\n")
             .map { it.split(" +".toRegex()) }
 
@@ -18,6 +18,7 @@ fun loadBoardStringToState(boardString: String): MagState {
     }
 
     val avatarsWithPosition = boardSymbols
+            .asSequence()
             .mapIndexed { y, symbRow ->
                 symbRow.mapIndexed { x, symb ->
                     Vec2I(x, y) to symb
@@ -41,6 +42,7 @@ fun loadBoardStringToState(boardString: String): MagState {
                 ) to pos
             }
             .sortedBy { (avatar, _) -> avatar.index }
+            .toList()
 
     val avatars = avatarsWithPosition.map { (avatar, _) -> avatar }
     val avatarsBoardPosition = avatarsWithPosition.map { (_, pos) -> pos }
@@ -53,18 +55,11 @@ fun loadBoardStringToState(boardString: String): MagState {
             roundCountBeforeSimulation = 3
     )
 
-    val initialState = MagState(
-            staticState = staticState,
-            roundCount = 0,
-            roundStartIndex = 0,
-            simulationsCount = 0,
-            avatarTurnIndex = 0,
-            avatars = avatars,
-            avatarsBoardPosition = avatarsBoardPosition,
-            board = board,
-            didSimulate = false,
-            simulationStates = listOf()
-    )
-    println("Loaded state from string: $initialState")
-    return initialState
+    val builder = stateBuilder ?: MagState.Builder()
+            .staticState(staticState)
+            .avatars(avatars)
+            .avatarsBoardPosition(avatarsBoardPosition)
+            .board(board)
+
+    return builder
 }

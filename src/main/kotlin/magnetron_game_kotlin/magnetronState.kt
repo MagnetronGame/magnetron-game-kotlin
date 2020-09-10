@@ -1,4 +1,7 @@
-package `magnetron-game-kotlin`
+package magnetron_game_kotlin
+
+import java.lang.IllegalStateException
+import kotlin.math.round
 
 enum class MagnetType {
     POSITIVE,
@@ -41,6 +44,7 @@ object StaticPieces {
     val MAGNET_POS = MagnetPiece(MagnetType.POSITIVE)
     val MAGNET_NEG = MagnetPiece(MagnetType.NEGATIVE)
     val MAGNET_FAKE = MagnetPiece(MagnetType.FAKE)
+    val MAGNET_UNKNOWN = MagnetPiece(MagnetType.UNKNOWN)
     val EMPTY = EmptyPiece()
 }
 
@@ -55,20 +59,77 @@ typealias MagBoard = List<List<Piece>>
 
 data class MagState(
         val staticState: MagStaticState,
+
+        val isTerminal: Boolean,
+        val avatarIndicesWon: List<Int>,
+
         val roundCount: Int,
         val roundStartIndex: Int,
         val simulationsCount: Int,
+
         val avatarTurnIndex: Int,
         val avatars: List<Avatar>,
         val avatarsBoardPosition: List<Vec2I>,
         val board: MagBoard,
+
         val didSimulate: Boolean,
         val simulationStates: List<MagState>
-)
+) {
+    data class Builder(
+            var staticState: MagStaticState? = null,
+
+            var isTerminal: Boolean = false,
+            var avatarIndicesWon: List<Int> = listOf(),
+
+            var roundCount: Int = 0,
+            var roundStartIndex: Int = 0,
+            var simulationsCount: Int = 0,
+
+            var avatarTurnIndex: Int = 0,
+            var avatars: List<Avatar>? = null,
+            var avatarsBoardPosition: List<Vec2I>? = null,
+            var board: MagBoard? = null,
+
+            var didSimulate: Boolean = false,
+            var simulationStates: List<MagState> = listOf()
+    ) {
+        fun staticState(staticState: MagStaticState) = apply { this.staticState = staticState }
+
+        fun isTerminal(isTerminal: Boolean) = apply { this.isTerminal = isTerminal }
+        fun avatarIndicesWon(avatarIndicesWon: List<Int>) = apply { this.avatarIndicesWon = avatarIndicesWon }
+
+        fun roundCount(roundCount: Int) = apply { this.roundCount = roundCount }
+        fun roundStartIndex(roundStartIndex: Int) = apply { this.roundStartIndex = roundStartIndex }
+        fun simulationsCount(simulationsCount: Int) = apply { this.simulationsCount = simulationsCount }
+
+        fun avatarTurnIndex(avatarTurnIndex: Int) = apply { this.avatarTurnIndex = avatarTurnIndex }
+        fun avatars(avatars: List<Avatar>) = apply { this.avatars = avatars }
+        fun avatarsBoardPosition(avatarsBoardPosition: List<Vec2I>) = apply { this.avatarsBoardPosition = avatarsBoardPosition }
+        fun board(board: MagBoard) = apply { this.board = board }
+
+        fun didSimulate(didSimulate: Boolean) = apply { this.didSimulate = didSimulate }
+        fun simulationStates(simulationStates: List<MagState>) = apply { this.simulationStates = simulationStates }
+
+        fun build() = MagState(
+                        staticState ?: throw IllegalStateException("staticState is null"),
+                        isTerminal, avatarIndicesWon,
+                        roundCount, roundStartIndex, simulationsCount, avatarTurnIndex,
+                        avatars ?: throw IllegalStateException("avatars is null"),
+                        avatarsBoardPosition ?: throw IllegalStateException("avatarsBoardPosition is null"),
+                        board ?: throw IllegalStateException("board is null"),
+                        didSimulate, simulationStates
+                )
+    }
+}
 
 data class MagAction(
         val handPieceIndex: Int,
         val boardPosition: Vec2I
+)
+
+data class MagStatePlayerView(
+        val playerIndex: Int,
+        val state: MagState
 )
 
 

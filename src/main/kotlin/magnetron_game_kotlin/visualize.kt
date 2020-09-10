@@ -1,4 +1,4 @@
-package `magnetron-game-kotlin`
+package magnetron_game_kotlin
 
 fun pieceToSymb(piece: Piece): String {
     val symb = when (piece) {
@@ -6,7 +6,8 @@ fun pieceToSymb(piece: Piece): String {
         StaticPieces.COIN_1 -> "C"
         StaticPieces.MAGNET_POS -> "+"
         StaticPieces.MAGNET_NEG -> "-"
-        StaticPieces.MAGNET_FAKE -> "x"
+        StaticPieces.MAGNET_FAKE -> ","
+        StaticPieces.MAGNET_UNKNOWN -> "x"
         is Avatar -> {
             "A${piece.index}${pieceToSymb(MagnetPiece(piece.magnetType))}"
         }

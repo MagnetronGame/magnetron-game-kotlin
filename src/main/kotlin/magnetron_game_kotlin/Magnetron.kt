@@ -1,4 +1,4 @@
-package `magnetron-game-kotlin`
+package magnetron_game_kotlin
 
 class Magnetron {
 
@@ -7,11 +7,14 @@ class Magnetron {
     val currentState: MagState
         get() = gameStates.last()
 
+    val currentStatePlayerViews: List<MagStatePlayerView>
+        get() = (0 until currentState.staticState.avatarCount).map { index -> currentStateForPlayer(index) }
+
     val isFinished: Boolean
-        get() = MagnetronFuncs.isFinished(currentState)
+        get() = currentState.isTerminal
 
     val winnerAvatarIndices: List<Int>
-        get() = MagnetronFuncs.winnerAvatarIndices(currentState)
+        get() = currentState.avatarIndicesWon
 
     val possibleActions: List<MagAction>
         get() = MagnetronFuncs.getPossibleActions(currentState)
@@ -29,4 +32,5 @@ class Magnetron {
         return newState
     }
 
+    fun currentStateForPlayer(playerIndex: Int) = MagnetronFuncs.stateViewForPlayer(currentState, playerIndex)
 }

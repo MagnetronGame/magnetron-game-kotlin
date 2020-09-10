@@ -1,4 +1,4 @@
-package `magnetron-game-kotlin`
+package magnetron_game_kotlin
 
 
 
