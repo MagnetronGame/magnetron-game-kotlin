@@ -21,6 +21,8 @@ java {
     targetCompatibility = JavaVersion.VERSION_11
 }
 
+
+
 repositories {
     // Use jcenter for resolving dependencies.
     // You can declare any Maven/Ivy/file repository here.
@@ -53,3 +55,32 @@ application {
     // Define the main class for the application.
     mainClassName = "magnetron_kotlin.AppKt"
 }
+
+publishing {
+    publications {
+        create<MavenPublication>("mavenJava") {
+            from(components["java"])
+        }
+    }
+}
+//
+//tasks.register<Jar>("sourcesJar") { // sourcesJar(type: Jar, dependsOn: classes) {
+//    dependsOn("classes")
+//    classifier = "sources"
+//    from(sourceSets.main.allSource)
+//}
+//
+////task javadocJar(type: Jar, dependsOn: javadoc) {
+////    classifier = 'javadoc'
+////    from javadoc.destinationDir
+////}
+//tasks.register<Jar>("javadocJar") { //(type: Jar, dependsOn: javadoc) {
+//    dependsOn("javadoc")
+//    classifier = "javadoc"
+//    from(javadoc.destinationDir)
+//}
+//
+//artifacts {
+//    archives("sourcesJar")
+//    archives("javadocJar")
+//}
