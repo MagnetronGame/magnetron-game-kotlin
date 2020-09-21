@@ -1,15 +1,22 @@
 package magnetron_game_kotlin
 
+import magnetron_game_kotlin.StateHelperFuncs.getBoardAvatarPiece
+import magnetron_game_kotlin.magnetron_state.*
+
+fun magnetTypeToSymb(magnetType: MagnetType) = when(magnetType) {
+    MagnetType.POSITIVE -> "+"
+    MagnetType.NEGATIVE -> "-"
+    MagnetType.FAKE -> "x"
+    MagnetType.UNKNOWN -> "/"
+}
+
 fun pieceToSymb(piece: Piece): String {
     val symb = when (piece) {
-        StaticPieces.EMPTY -> "."
-        StaticPieces.COIN_1 -> "C"
-        StaticPieces.MAGNET_POS -> "+"
-        StaticPieces.MAGNET_NEG -> "-"
-        StaticPieces.MAGNET_FAKE -> ","
-        StaticPieces.MAGNET_UNKNOWN -> "x"
-        is Avatar -> {
-            "A${piece.index}${pieceToSymb(MagnetPiece(piece.magnetType))}"
+        is EmptyPiece -> "."
+        is CoinPiece -> "C"
+        is MagnetPiece -> magnetTypeToSymb(piece.magnetType)
+        is AvatarPiece -> {
+            "A${piece.index}${magnetTypeToSymb(piece.magnetType)}"
         }
         else -> "."
     }
@@ -17,16 +24,18 @@ fun pieceToSymb(piece: Piece): String {
     return symb
 }
 
-fun printState(state: MagState) {
+fun stateToString(state: MagState): String {
     val boardSymbs = state.board.indices.map { y ->
         state.board[0].indices.map { x ->
             pieceToSymb(getBoardAvatarPiece(state, Vec2I(x, y))).padEnd(3)
         } }
     val boardSymbsString = boardSymbs.joinToString("\n") { it.joinToString(" ") }
     val avatarsString = state.avatars.joinToString("\n") {
-        val handString = it.hand.map { mag -> pieceToSymb(MagnetPiece(mag)) }.toString()
-        handString + " " + it.coins
+        val handString = it.avatarData.hand.map { mag -> pieceToSymb(mag) }.toString()
+        handString + " " + it.avatarData.coins
     }
     val stateString = "$boardSymbsString\n$avatarsString"
-    println(stateString)
+    return stateString
 }
+
+fun printState(state: MagState) = println(stateToString(state))

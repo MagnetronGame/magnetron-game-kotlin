@@ -14,7 +14,7 @@ plugins {
 }
 
 group = "org.magnetron"
-version = "-SNAPSHOT"
+version = "0.1"
 
 java {
     sourceCompatibility = JavaVersion.VERSION_11
@@ -51,9 +51,24 @@ dependencies {
 //    }
 //}
 
+tasks.register("createProperties") {
+    dependsOn("processResources")
+    doLast {
+        File("$buildDir/resources/main/version.properties").writer().let { w ->
+            val properites = mapOf(
+                    "version" to project.version.toString()
+            ).toProperties()
+            properites.store(w, null)
+        }
+    }
+}
+
+tasks.classes {
+    dependsOn("createProperties")
+}
 application {
     // Define the main class for the application.
-    mainClassName = "magnetron_kotlin.AppKt"
+    mainClassName = "magnetron_game_kotlin.AppKt"
 }
 
 publishing {
@@ -63,6 +78,8 @@ publishing {
         }
     }
 }
+
+
 //
 //tasks.register<Jar>("sourcesJar") { // sourcesJar(type: Jar, dependsOn: classes) {
 //    dependsOn("classes")
