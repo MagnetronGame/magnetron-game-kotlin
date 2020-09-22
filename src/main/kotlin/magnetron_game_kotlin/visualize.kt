@@ -24,13 +24,25 @@ fun pieceToSymb(piece: Piece): String {
     return symb
 }
 
-fun stateToString(state: MagState): String {
-    val boardSymbs = state.board.indices.map { y ->
-        state.board[0].indices.map { x ->
-            pieceToSymb(getBoardAvatarPiece(state, Vec2I(x, y))).padEnd(3)
+fun fullBoardStateToString(fullBoardState: FullBoardState): String {
+    val (board, _) = fullBoardState
+    val boardSymbs = board.indices.map { y ->
+        board[0].indices.map { x ->
+            pieceToSymb(getBoardAvatarPiece(fullBoardState, Vec2I(x, y))).padEnd(3)
         } }
     val boardSymbsString = boardSymbs.joinToString("\n") { it.joinToString(" ") }
-    val avatarsString = state.avatars.joinToString("\n") {
+    return boardSymbsString
+}
+
+fun printFullBoardState(fullBoardState: FullBoardState) = println(fullBoardStateToString(fullBoardState))
+
+fun stateToString(board: MagBoard, avatars: List<AvatarState>): String {
+    val boardSymbs = board.indices.map { y ->
+        board[0].indices.map { x ->
+            pieceToSymb(getBoardAvatarPiece(board, avatars, Vec2I(x, y))).padEnd(3)
+        } }
+    val boardSymbsString = boardSymbs.joinToString("\n") { it.joinToString(" ") }
+    val avatarsString = avatars.joinToString("\n") {
         val handString = it.avatarData.hand.map { mag -> pieceToSymb(mag) }.toString()
         handString + " " + it.avatarData.coins
     }
@@ -38,4 +50,7 @@ fun stateToString(state: MagState): String {
     return stateString
 }
 
+fun stateToString(state: MagState): String = stateToString(state.board, state.avatars)
+
 fun printState(state: MagState) = println(stateToString(state))
+fun printState(board: MagBoard, avatars: List<AvatarState>) = println(stateToString(board, avatars))

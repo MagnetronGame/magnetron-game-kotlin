@@ -16,10 +16,17 @@ object StateHelperFuncs {
 
 
     fun getBoardPiece(board: MagBoard, pos: Vec2I) = board[pos.y][pos.x]
-    fun getBoardAvatarPiece(state: MagState, pos: Vec2I): Piece {
-        val avatar = state.avatars.find { it.position == pos }
-        return avatar?.piece ?: getBoardPiece(state.board, pos)
+
+    fun getBoardAvatarPiece(fullBoardState: FullBoardState, pos: Vec2I): Piece {
+        val (board, avatarsWithPos) = fullBoardState
+        val avatarWithPos = avatarsWithPos.find { (_, aPos) -> aPos == pos }
+        return avatarWithPos?.first ?: getBoardPiece(board, pos)
     }
+    fun getBoardAvatarPiece(board: MagBoard, avatars: List<AvatarState>, pos: Vec2I): Piece {
+        val avatar = avatars.find { it.position == pos }
+        return avatar?.piece ?: getBoardPiece(board, pos)
+    }
+    fun getBoardAvatarPiece(state: MagState, pos: Vec2I): Piece = getBoardAvatarPiece(state.board, state.avatars, pos)
 
     fun isBoardPositionEmpty(board: MagBoard, pos: Vec2I): Boolean =
             getBoardPiece(board, pos) == EMPTY_PIECE

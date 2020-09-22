@@ -6,22 +6,23 @@ import magnetron_game_kotlin.StateHelperFuncs.isPositionInsideBoard
 import magnetron_game_kotlin.StateHelperFuncs.placePieceOnBoard
 import magnetron_game_kotlin.Vec2I
 import magnetron_game_kotlin.magnetron_state.*
+import magnetron_game_kotlin.printState
 
 
 object Simulation {
 
     fun simulate(state: MagState): List<MagSimState> {
-        var currSimState = stateToSimState(state)
-        val simulationStates = mutableListOf<MagSimState>()
+        val initialSimState = stateToSimState(state)
+        val simulationStates = mutableListOf(initialSimState)
 
         while (true) {
-            val nextState = simulateStep(currSimState, simulationStates)
-            simulationStates.add(currSimState)
+            val currSimState = simulationStates.last()
+            val nextSimState = simulateStep(currSimState, simulationStates)
 
-            if (nextState == currSimState) {
+            if (nextSimState == currSimState) {
                 break
             } else {
-                currSimState = nextState
+                simulationStates.add(nextSimState)
             }
         }
 
@@ -43,9 +44,17 @@ object Simulation {
     fun simulateStep(simState: MagSimState, prevSimStates: List<MagSimState>): MagSimState {
         val avatarsPosition = simState.simAvatars.map { it.avatarState.position }
 
-        val avatarsTotalMagnetForces = avatarsPosition.mapIndexed { avatarIndex, pos ->
+        val avatarsAffectingMagnetsWithPos = avatarsPosition.indices.map { avatarIndex ->
             val simAvatar = simState.simAvatars[avatarIndex]
-            val magnetForces = calcNeighbourMagnetForces(simAvatar.avatarState, simState.board)
+            neighbourMagnetsWithPosition(simAvatar.avatarState, simState.board)
+        }
+
+        val avatarsAffectedPositions = avatarsAffectingMagnetsWithPos.map { it.map { (_, pos) -> pos } }
+
+        val avatarsTotalMagnetForces = avatarsAffectingMagnetsWithPos.mapIndexed {
+            avatarIndex, neighbourMagnetPiecesWithPos ->
+            val simAvatar = simState.simAvatars[avatarIndex]
+            val magnetForces = calcNeighbourMagnetForces(simAvatar.avatarState, neighbourMagnetPiecesWithPos)
             val totalMagnetForce = magnetForces.fold(Vec2I()) { acc, force -> acc.add(force) }
             totalMagnetForce
         }
@@ -79,20 +88,22 @@ object Simulation {
                 }
 
         val simAvatars = simState.simAvatars
-                .zip(avatarsCoinPick)
-                .zip(nextAvatarsCollidedPosition) { (a, b), c -> Triple(a, b,  c) }
-                .map { (simAvatar, coinPick, nextPos) ->
+                .mapIndexed { i, simAvatar ->
+                    val coinPick = avatarsCoinPick[i]
+                    val nextPos = nextAvatarsCollidedPosition[i]
+                    val affectedPositions = avatarsAffectedPositions[i]
                     simAvatar.copy(
                             avatarState = simAvatar.avatarState.copy(
                                     avatarData =
-                                        if (coinPick > 0)
-                                            simAvatar.avatarState.avatarData.copy(
+                                    if (coinPick > 0)
+                                        simAvatar.avatarState.avatarData.copy(
                                                 coins = simAvatar.avatarState.avatarData.coins + coinPick
-                                            )
-                                        else
-                                            simAvatar.avatarState.avatarData,
+                                        )
+                                    else
+                                        simAvatar.avatarState.avatarData,
                                     position = nextPos
-                            )
+                            ),
+                            affectedPositions = affectedPositions
                     )
                 }
 
@@ -105,7 +116,8 @@ object Simulation {
 
         val nextSimState = simState.copy(
                 simAvatars = simAvatars,
-                board = boardWithoutPickedCoins
+                board = boardWithoutPickedCoins,
+                collisionStates = collisionStates
         )
 
         return nextSimState
@@ -118,27 +130,33 @@ object Simulation {
             Vec2I(0, 1)
     )
 
-    private fun calcNeighbourMagnetForces(avatar: AvatarState, board: MagBoard): List<Vec2I> {
-        val magnetForces = relNeighboursPosition
-                .asSequence()
-                .map { relNPos -> relNPos.add(avatar.position) }
-                .filter { nPos -> isPositionInsideBoard(board, nPos) }
-                .map { nPos -> nPos to getBoardPiece(board, nPos) }
-                .filter { (_, nPiece) -> nPiece is MagnetPiece
-                        && (nPiece.magnetType == MagnetType.POSITIVE
-                        || nPiece.magnetType == MagnetType.NEGATIVE
-                        )
+    private fun neighbourMagnetsWithPosition(avatar: AvatarState, board: MagBoard): List<Pair<MagnetPiece, Vec2I>> =
+            relNeighboursPosition
+                    .asSequence()
+                    .map { relNPos -> relNPos.add(avatar.position) }
+                    .filter { nPos -> isPositionInsideBoard(board, nPos) }
+                    .map { nPos -> nPos to getBoardPiece(board, nPos) }
+                    .filter { (_, nPiece) -> nPiece is MagnetPiece
+                            && (nPiece.magnetType == MagnetType.POSITIVE
+                            || nPiece.magnetType == MagnetType.NEGATIVE
+                            )
+                    }
+                    .map { (nPos, piece) -> (piece as MagnetPiece) to nPos }
+                    .toList()
+
+    private fun calcNeighbourMagnetForces(
+            avatar: AvatarState,
+            neighbourMagnetForces: List<Pair<MagnetPiece, Vec2I>>
+    ): List<Vec2I> = neighbourMagnetForces
+                .map { (nPiece, nPos) ->
+                    val nPieceMagnetType = nPiece.magnetType
+                    if (nPieceMagnetType == MagnetType.POSITIVE || nPieceMagnetType == MagnetType.NEGATIVE) {
+                        val forceSign = if (avatar.piece.magnetType == nPiece.magnetType) -1 else 1
+                        val relNPos = nPos.sub(avatar.position)
+                        val magnetForce = relNPos.mul(forceSign)
+                        magnetForce
+                    } else Vec2I()
                 }
-                .map { (nPos, nPiece) ->
-                    nPiece as MagnetPiece
-                    val forceSign = if (avatar.piece.magnetType == nPiece.magnetType) -1 else 1
-                    val relNPos = nPos.sub(avatar.position)
-                    val magnetForce = relNPos.mul(forceSign)
-                    magnetForce
-                }
-                .toList()
-        return magnetForces
-    }
 
     private fun collisionResolutionStep(avatarsPosition: List<Vec2I>, nextAvatarsPosition: List<Vec2I>): List<Vec2I> {
         val collidingAvatarsIndex = nextAvatarsPosition

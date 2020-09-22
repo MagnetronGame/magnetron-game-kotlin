@@ -21,7 +21,7 @@ fun handleCollisions(
     val collisionStates = mutableListOf(initialCollisionState)
     // loop until steady state
     while (true) {
-        val collidingAvatarIndices = collidingAvatarsIndices(collisionStates.last())
+        val collidingAvatarIndices: List<List<Int>> = collidingAvatarsIndices(collisionStates.last())
         if (collidingAvatarIndices.isEmpty()) {
             break
         }
@@ -35,7 +35,7 @@ fun handleCollisions(
 
     return Pair(
             collisionStates.last().simAvatars.map { it.avatarState.position },
-            collisionStates.slice(1 until collisionStates.lastIndex)
+            collisionStates.slice(1..collisionStates.lastIndex)
     )
 }
 
@@ -54,14 +54,15 @@ private fun collisionResolutionMoveBack(
         originalAvatarsPosition: List<Vec2I>,
         collisionStates: List<SimCollisionState>
 ): SimCollisionState {
-    val uniqueCollidingIndices = collidingAvatarIndices.flatten().toSet()
+    val uniqueCollidingAvatarIndices = collidingAvatarIndices.flatten().toSet()
     val collisionState = collisionStates.last()
     val avatarPositions = collisionState.simAvatars.map { it.avatarState.position }
-    val affectedPositions = uniqueCollidingIndices
+    val affectedPositions = uniqueCollidingAvatarIndices
             .map { collisionState.simAvatars[it].avatarState.position }
+            .distinct()
     val resetPositions = originalAvatarsPosition.zip(avatarPositions)
             .mapIndexed { avatarIndex, (prevPos, nextPos) ->
-                if (avatarIndex in uniqueCollidingIndices) prevPos else nextPos
+                if (avatarIndex in uniqueCollidingAvatarIndices) prevPos else nextPos
             }
     val nextCollisionState = collisionState.copy(
             simAvatars = collisionState.simAvatars.zip(resetPositions).map { (a, pos) -> a.copy(

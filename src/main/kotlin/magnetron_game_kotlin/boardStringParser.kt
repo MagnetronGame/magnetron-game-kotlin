@@ -11,7 +11,7 @@ typealias FullBoardState = Pair<MagBoard, AvatarPiecesWithPos>
 
 fun parseBoardString(boardString: String): FullBoardState {
     val boardSymbols = boardString.split("\n")
-            .map { it.split(" +".toRegex()) }
+            .map { it.trim().split(" +".toRegex()) }
 
     val piecesWithPos: List<List<Pair<Piece, Vec2I>>> = boardSymbols.mapIndexed {y, symbRow ->
         symbRow.mapIndexed { x, pieceString ->

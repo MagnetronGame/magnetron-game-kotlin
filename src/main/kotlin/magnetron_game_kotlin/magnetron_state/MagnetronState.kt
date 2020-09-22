@@ -4,9 +4,6 @@ import magnetron_game_kotlin.Vec2I
 import java.lang.IllegalStateException
 
 
-
-
-
 typealias MagBoard = List<List<Piece>>
 
 data class AvatarData(
@@ -37,6 +34,7 @@ data class SimAvatarState(
         val avatarState: AvatarState,
         val affectedPositions: List<Vec2I>  // affected by either a magnet or a collision
 )
+
 
 data class SimCollisionState(
         val simAvatars: List<SimAvatarState>,
