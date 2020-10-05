@@ -1,15 +1,22 @@
 package magnetron_game_kotlin
 
+import magnetron_game_kotlin.StateHelperFuncs.getBoardAvatarPiece
+import magnetron_game_kotlin.magnetron_state.*
+
+fun magnetTypeToSymb(magnetType: MagnetType) = when(magnetType) {
+    MagnetType.POSITIVE -> "+"
+    MagnetType.NEGATIVE -> "-"
+    MagnetType.FAKE -> "x"
+    MagnetType.UNKNOWN -> "/"
+}
+
 fun pieceToSymb(piece: Piece): String {
     val symb = when (piece) {
-        StaticPieces.EMPTY -> "."
-        StaticPieces.COIN_1 -> "C"
-        StaticPieces.MAGNET_POS -> "+"
-        StaticPieces.MAGNET_NEG -> "-"
-        StaticPieces.MAGNET_FAKE -> ","
-        StaticPieces.MAGNET_UNKNOWN -> "x"
-        is Avatar -> {
-            "A${piece.index}${pieceToSymb(MagnetPiece(piece.magnetType))}"
+        is EmptyPiece -> "."
+        is CoinPiece -> "C"
+        is MagnetPiece -> magnetTypeToSymb(piece.magnetType)
+        is AvatarPiece -> {
+            "A${piece.index}${magnetTypeToSymb(piece.magnetType)}"
         }
         else -> "."
     }
@@ -17,16 +24,33 @@ fun pieceToSymb(piece: Piece): String {
     return symb
 }
 
-fun printState(state: MagState) {
-    val boardSymbs = state.board.indices.map { y ->
-        state.board[0].indices.map { x ->
-            pieceToSymb(getBoardAvatarPiece(state, Vec2I(x, y))).padEnd(3)
+fun fullBoardStateToString(fullBoardState: FullBoardState): String {
+    val (board, _) = fullBoardState
+    val boardSymbs = board.indices.map { y ->
+        board[0].indices.map { x ->
+            pieceToSymb(getBoardAvatarPiece(fullBoardState, Vec2I(x, y))).padEnd(3)
         } }
     val boardSymbsString = boardSymbs.joinToString("\n") { it.joinToString(" ") }
-    val avatarsString = state.avatars.joinToString("\n") {
-        val handString = it.hand.map { mag -> pieceToSymb(MagnetPiece(mag)) }.toString()
-        handString + " " + it.coins
+    return boardSymbsString
+}
+
+fun printFullBoardState(fullBoardState: FullBoardState) = println(fullBoardStateToString(fullBoardState))
+
+fun stateToString(board: MagBoard, avatars: List<AvatarState>): String {
+    val boardSymbs = board.indices.map { y ->
+        board[0].indices.map { x ->
+            pieceToSymb(getBoardAvatarPiece(board, avatars, Vec2I(x, y))).padEnd(3)
+        } }
+    val boardSymbsString = boardSymbs.joinToString("\n") { it.joinToString(" ") }
+    val avatarsString = avatars.joinToString("\n") {
+        val handString = it.avatarData.hand.map { mag -> pieceToSymb(mag) }.toString()
+        handString + " " + it.avatarData.coins
     }
     val stateString = "$boardSymbsString\n$avatarsString"
-    println(stateString)
+    return stateString
 }
+
+fun stateToString(state: MagState): String = stateToString(state.board, state.avatars)
+
+fun printState(state: MagState) = println(stateToString(state))
+fun printState(board: MagBoard, avatars: List<AvatarState>) = println(stateToString(board, avatars))
