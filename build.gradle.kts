@@ -9,7 +9,6 @@ plugins {
     id("org.jetbrains.kotlin.jvm") version "1.3.41"
 
     // Apply the application plugin to add support for building a CLI application.
-    application
     `maven-publish`
 }
 
@@ -43,6 +42,9 @@ dependencies {
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit")
 
     implementation("org.jetbrains.kotlin:kotlin-reflect")
+
+    implementation("io.github.microutils:kotlin-logging:1.8.3")
+
 }
 
 //tasks.withType<KotlinCompile> {
@@ -51,25 +53,7 @@ dependencies {
 //    }
 //}
 
-tasks.register("createProperties") {
-    dependsOn("processResources")
-    doLast {
-        File("$buildDir/resources/main/version.properties").writer().let { w ->
-            val properites = mapOf(
-                    "version" to project.version.toString()
-            ).toProperties()
-            properites.store(w, null)
-        }
-    }
-}
-
-tasks.classes {
-    dependsOn("createProperties")
-}
-application {
-    // Define the main class for the application.
-    mainClassName = "magnetron_game_kotlin.AppKt"
-}
+//
 
 publishing {
     publications {
@@ -79,6 +63,21 @@ publishing {
     }
 }
 
+//tasks.register("createProperties") {
+//    dependsOn("processResources")
+//    doLast {
+//        File("$buildDir/resources/main/version.properties").writer().let { w ->
+//            val properites = mapOf(
+//                    "version" to project.version.toString()
+//            ).toProperties()
+//            properites.store(w, null)
+//        }
+//    }
+//}
+//
+//tasks.classes {
+//    dependsOn("createProperties")
+//}
 
 //
 //tasks.register<Jar>("sourcesJar") { // sourcesJar(type: Jar, dependsOn: classes) {

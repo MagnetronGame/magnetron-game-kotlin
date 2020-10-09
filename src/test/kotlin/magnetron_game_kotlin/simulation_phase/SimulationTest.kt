@@ -2,6 +2,7 @@ package magnetron_game_kotlin.simulation_phase
 
 import magnetron_game_kotlin.*
 import magnetron_game_kotlin.magnetron_state.MagState
+import magnetron_game_kotlin.utils.StateTestUtils
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -11,18 +12,18 @@ class SimulationTest {
         val boardStrings = mapOf(
                 Pair(
                         """
-                        A0+ -   C   . A1-
-                        .   .   .   .   -
-                        C   .   C   .   C
-                        .   .   .   .   -
-                        A3- +   C   - A2+
+                        A0+ M-0 C1. ... A1-
+                        ... ... ... ... M-1
+                        C1. ... C1. ... C1.
+                        ... ... ... ... M-2
+                        A3- M+2 C1. M-3 A2+
                         """.trimIndent(),
                         """
-                        .   A0+ C   . A1-
+                        .   A0+ C1. . A1-
                         .   .   .   .   .
-                        C   .   C   .   C
+                        C1. .   C1. .   C1.
                         .   .   .   A2+ .
-                        .   A3- C   .   .
+                        .   A3- C1. .   .
                         """.trimIndent()
                 )
         )
@@ -35,19 +36,19 @@ class SimulationTest {
     @Test fun testSingleCollision() {
         val boardStrings = mapOf(
                 Pair(
-                        "+ A0+ . A1- -",
-                        ". A0+ . A1- ."
+                        "M+0 A0+ ... A1- M-1",
+                        "... A0+ ... A1- ..."
                 ),
                 Pair(
-                        "-   A0- A1- -   .",
-                        ".   A1- A0- .   ."
+                        "M-0 A0- A1- M-1 ...",
+                        "... A1- A0- ... ..."
                 ),
                 Pair(
                         """
-                            A0+ -   .   .
-                            -   .   A1- -
+                            A0+ M-0 .   .
+                            M-2 .   A1- M-1
                             .   .   A2+ .
-                            .   .   +   .
+                            .   .   M+2 .
                         """.trimIndent(),
                         """
                             A0+ .   .   .
@@ -64,17 +65,17 @@ class SimulationTest {
     }
 
     @Test fun testSimStateCount() {
-        val (_, nextStateSingle) = simulateBoardStr("+   A0+ .   .   A1- -   ")
+        val (_, nextStateSingle) = simulateBoardStr("M+0 A0+ .   .   A1- M-1")
 //        nextStateSingle.simulationStates.forEach { s -> printState(s.board, s.simAvatars.map { it.avatarState }) }
         assertEquals(3, nextStateSingle.simulationStates.size, "Did not have two simStates")
-        val (_, nextStateTwo) = simulateBoardStr("+   A0+ +   .   A1- -   ")
+        val (_, nextStateTwo) = simulateBoardStr("M+0 A0+ M+0 .   A1- M-1")
         assertEquals(4, nextStateTwo.simulationStates.size, "Did not have three simStates")
-        val (_, nextStateCollide) = simulateBoardStr("+   A0+ .   A1- -   ")
-        assertEquals(2, nextStateCollide.simulationStates.size, "Did not have three simStates")
+        val (_, nextStateCollide) = simulateBoardStr("M+0 A0+ .   A1- M-1")
+        assertEquals(2, nextStateCollide.simulationStates.size, "Did not have two simStates")
     }
 
     @Test fun testMagnetAffectData() {
-        val (state, nextState) = simulateBoardStr("+   A0+ .   .   A1- -   ")
+        val (state, nextState) = simulateBoardStr("M+0 A0+ .   .   A1- M-1")
         val simState = nextState.simulationStates[1]
         assertEquals(2, simState.simAvatars.size)
         simState.simAvatars.forEachIndexed {i, it ->
@@ -87,7 +88,7 @@ class SimulationTest {
     }
 
     @Test fun testMagnetCollisions() {
-        val (state, nextState) = simulateBoardStr("+   A0+ .   A1- -   ")
+        val (state, nextState) = simulateBoardStr("M+0 A0+ .   A1- M-1")
         val simState = nextState.simulationStates[1]
         assertEquals(1, simState.collisionStates.size, "Did not have 1 collision state in simState")
         val collisionState = simState.collisionStates[0]
@@ -99,22 +100,22 @@ class SimulationTest {
 
 
     private fun testBoardSimulation(priorBoardString: String, expectedBoardString: String) {
-        val priorBoardState = parseBoardString(priorBoardString)
-        val expectedBoardState = parseBoardString(expectedBoardString)
-        val state = createMagState(priorBoardState)
-        val nextState = MagnetronFuncs.simulateToMagState(state)
-        val actualBoardState = stateToFullBoardState(nextState)
+        val priorBoardState = BoardString.parse(priorBoardString)
+        val expectedBoardState = BoardString.parse(expectedBoardString)
+        val state = MagHelpers.createMagState(priorBoardState)
+        val nextState = MagGame.simulateToMagState(state)
+        val actualBoardState = StateTestUtils.stateToFullBoardState(nextState)
         assertEquals(
-                removePieceIds(expectedBoardState),
-                removePieceIds(actualBoardState),
-                "simple simulation\n${stateToString(nextState)}"
+                StateTestUtils.removePieceIds(expectedBoardState),
+                StateTestUtils.removePieceIds(actualBoardState),
+                "simple simulation\n${Visualize.stateToString(nextState)}"
         )
     }
 
     private fun simulateBoardStr(boardStr: String): Pair<MagState, MagState> {
-        val fullBoardState = parseBoardString(boardStr)
-        val state = createMagState(fullBoardState, isInitialState = false)
-        val nextState = MagnetronFuncs.simulateToMagState(state)
+        val fullBoardState = BoardString.parse(boardStr)
+        val state = MagHelpers.createMagState(fullBoardState, isInitialState = false)
+        val nextState = MagGame.simulateToMagState(state)
         return state to nextState
     }
 }

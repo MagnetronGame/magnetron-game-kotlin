@@ -21,18 +21,18 @@ class Magnetron {
         get() = currentState.lifecycleState.avatarIndicesWon
 
     val possibleActions: List<MagAction>
-        get() = MagnetronFuncs.getPossibleActions(currentState)
+        get() = MagGame.getPossibleActions(currentState)
 
 
     fun start() {
-        val initialState = MagnetronFuncs.createInitialState()
+        val initialState = MagGame.createInitialState()
         gameStates.add(initialState)
     }
 
     fun performAction(action: MagAction) {
-        val newState = MagnetronFuncs.performAction(currentState, action)
+        val newState = MagGame.performAction(currentState, action)
         gameStates.add(newState)
     }
 
-    fun currentStateForPlayer(playerIndex: Int) = MagnetronFuncs.stateViewForPlayer(currentState, playerIndex)
+    fun currentStateForPlayer(playerIndex: Int) = MagGame.stateViewForPlayer(currentState, playerIndex)
 }

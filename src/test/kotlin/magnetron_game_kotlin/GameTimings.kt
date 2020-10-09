@@ -44,14 +44,14 @@ class GameTimings {
             mag.start()
             if (print) {
                 println("Game start")
-                printState(mag.currentState)
+                Visualize.printState(mag.currentState)
             }
 
             while (!mag.isTerminal) {
                 mag.performAction(mag.possibleActions.random())
                 if (print) {
                     println("Round ${mag.gameStates.size}")
-                    printState(mag.currentState)
+                    Visualize.printState(mag.currentState)
                 }
 //        mag.currentStatePlayerViews.forEach { state -> printState(state.state) }
             }

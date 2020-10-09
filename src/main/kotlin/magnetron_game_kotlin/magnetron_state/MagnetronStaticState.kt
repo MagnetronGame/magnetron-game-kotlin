@@ -5,6 +5,6 @@ data class MagStaticState(
         val avatarCount: Int,
         val boardWidth: Int,
         val boardHeight: Int,
-        val startingHand: List<Piece>,
+        val avatarsStartingHand: List<List<Piece>>,
         val roundCountBeforeSimulation: Int
 )

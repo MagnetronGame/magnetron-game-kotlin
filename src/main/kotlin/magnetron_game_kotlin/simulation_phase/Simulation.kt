@@ -6,8 +6,6 @@ import magnetron_game_kotlin.StateHelperFuncs.isPositionInsideBoard
 import magnetron_game_kotlin.StateHelperFuncs.placePieceOnBoard
 import magnetron_game_kotlin.Vec2I
 import magnetron_game_kotlin.magnetron_state.*
-import magnetron_game_kotlin.printState
-
 
 object Simulation {
 

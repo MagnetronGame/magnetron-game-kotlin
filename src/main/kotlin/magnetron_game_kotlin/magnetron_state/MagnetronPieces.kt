@@ -15,7 +15,7 @@ interface Piece {
 
 data class AvatarPiece(
         override val id: String,
-        val index: Int,
+        val ownerAvatarIndex: Int,
         val magnetType: MagnetType,
         override val type: String = AvatarPiece::class.simpleName!!
 ) : Piece {
@@ -34,6 +34,7 @@ data class CoinPiece(
 data class MagnetPiece(
         override val id: String,
         val magnetType: MagnetType,
+        val ownerAvatarIndex: Int,
         override val type: String = MagnetPiece::class.simpleName!!
 ) : Piece {
     override fun copy(_id: String) = copy(id = _id)

@@ -8,25 +8,21 @@ import magnetron_game_kotlin.StateHelperFuncs.placePieceOnBoard
 import magnetron_game_kotlin.StateHelperFuncs.winnerAvatarIndices
 import magnetron_game_kotlin.magnetron_state.*
 import magnetron_game_kotlin.simulation_phase.Simulation
+import java.util.*
 
-object MagnetronFuncs {
+object MagGame {
 
     val initialBoardString = """
-    A0+ .   C   . A1-
-    .   .   .   .   .
-    C   .   C   .   C
-    .   .   .   .   .
-    A3- .   C   . A2+
+    A0+ ... C1. ... A1-
+    ... ... ... ... ...
+    C1. ... C1. ... C1.
+    ... ... ... ... ...
+    A3- ... C1. ... A2+
     """.trimIndent()
 
-    val startHand = listOf("+", "-", "x").mapIndexed { i, symb ->
-        createPieceOfString(symb, id="hand$i")
-    }
-
-
     fun createInitialState(): MagState {
-        val (board, avatarPiecesWithPos ) = parseBoardString(initialBoardString)
-        val initialState = createMagState(board, avatarPiecesWithPos, isInitialState = true)
+        val (board, avatarPiecesWithPos ) = BoardString.parse(initialBoardString)
+        val initialState = MagHelpers.createMagState(board, avatarPiecesWithPos, isInitialState = true)
         return initialState
     }
 
@@ -76,9 +72,9 @@ object MagnetronFuncs {
         val simStates = Simulation.simulate(state)
         val lastSimState = simStates.last()
 
-        val nextAvatars = lastSimState.simAvatars.map { it.avatarState.copy(
-                avatarData = it.avatarState.avatarData.copy(
-                        hand = startHand
+        val nextAvatars = lastSimState.simAvatars.mapIndexed { i, a -> a.avatarState.copy(
+                avatarData = a.avatarState.avatarData.copy(
+                        hand = state.staticState.avatarsStartingHand[i]
                 )
         ) }
         val nextBoard = lastSimState.board.map { boardRow ->
