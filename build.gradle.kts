@@ -45,8 +45,9 @@ dependencies {
 
     implementation("org.jetbrains.kotlin:kotlin-reflect")
 
+    implementation("org.slf4j:slf4j-api:1.7.30")
+    runtimeOnly("org.slf4j:slf4j-simple:1.7.29")
     implementation("io.github.microutils:kotlin-logging:1.12.0")
-
 }
 
 tasks.withType<KotlinCompile> {
